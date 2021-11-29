@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.service import Service
 import time
 
+
 class Crawler:
     """
     NOME:
@@ -24,7 +25,7 @@ class Crawler:
         options = webdriver.ChromeOptions()
         options.add_argument('--disable-gpu')
         
-        #service = Service('chromedriver.exe')
+        service = Service('chromedriver.exe')
 
         self.chrome = webdriver.Chrome(options=options)
 
@@ -46,8 +47,13 @@ class Crawler:
             time.sleep(2)
             self.chrome.find_element_by_id('closeCookieBanner').click()
             img = self.chrome.find_element(By.CLASS_NAME, 'img-responsive').get_attribute('src')
+            
             h4 = self.chrome.find_element(By.CLASS_NAME, 'caption').find_elements(By.TAG_NAME, 'h4')
-            price = h4[0].text.replace('$','')
+            try:
+                price = float(h4[0].text.replace('$', ''))
+            except:
+                price = h4[0].text.replace('$', '')
+            
             title = h4[1].text.lower()
             description = self.chrome.find_element(By.CLASS_NAME, 'description').text
             reviews = self.chrome.find_element(By.CLASS_NAME, 'ratings').find_element(By.TAG_NAME, 'p').text.replace(' reviews', '')
@@ -55,12 +61,12 @@ class Crawler:
             hds = self.chrome.find_elements_by_class_name('swatch')
             prices = {}
             for hd in hds:
-                    if not 'disabled' in hd.get_attribute('class'):
-                        hd.click()                                      
-                        prices[hd.text] = self.chrome.find_element(By.CLASS_NAME, 'price').text
+                if 'disabled' not in hd.get_attribute('class'):
+                    hd.click()
+                    prices[hd.text] = self.chrome.find_element(By.CLASS_NAME, 'price').text
 
             yield {'img': img,
-                   'price': float(price),
+                   'price': price,
                    'prices': prices,
                    'title': title,
                    'description': description,
